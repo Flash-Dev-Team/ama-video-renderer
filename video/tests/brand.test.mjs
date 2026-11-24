@@ -11,21 +11,18 @@ test('brief không có brand: dùng mặc định trung tính', () => {
     const b = resolveBrand({});
     assert.deepEqual(b.colors, DEFAULT_COLORS);
     assert.equal(b.font.family, DEFAULT_FONT);
-    assert.equal(b.mascot, 'none');
     assert.deepEqual(b.voices, DEFAULT_VOICES);
     assert.equal(b.narrator, null);
     assert.equal(b.logoUrl, null);
     assert.equal(b.name, '');
-    assert.equal(resolveBrand(null).mascot, 'none');
 });
 
-test('brand sai dữ liệu: màu / font / linh vật / giọng sai thì lùi về mặc định', () => {
+test('brand sai dữ liệu: màu / font / giọng sai thì lùi về mặc định', () => {
     const b = resolveBrand({
         brand: {
             name: '  Tiệm Hoa Nhỏ ',
             colors: { primary: 'red', accent: '#0a0', background: '#12345', text: '#fff;}body{' },
             font: 'Comic Sans MS',
-            mascot: 'rong',
             voices: { host: 'giong-la', khach: 'vi-VN-NamMinhNeural' },
             hashtags: ['#TiemHoa', 'khong-hop-le'],
         },
@@ -33,7 +30,6 @@ test('brand sai dữ liệu: màu / font / linh vật / giọng sai thì lùi v�
     assert.equal(b.name, 'Tiệm Hoa Nhỏ');
     assert.deepEqual(b.colors, { ...DEFAULT_COLORS, accent: '#00AA00' });
     assert.equal(b.font.family, DEFAULT_FONT);
-    assert.equal(b.mascot, 'none');
     assert.equal(b.voices.host, DEFAULT_VOICES.host);
     assert.equal(b.narrator, null);
     assert.deepEqual(b.hashtags, ['#TiemHoa']);

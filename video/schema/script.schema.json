@@ -108,7 +108,7 @@
               "serious",
               "point"
             ],
-            "description": "Biểu cảm của linh vật trong cảnh (khi brand có linh vật)"
+            "description": "Không còn dùng (trước là biểu cảm linh vật); giữ để kịch bản cũ vẫn hợp lệ"
           },
           "section": {
             "type": "integer",
