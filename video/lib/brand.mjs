@@ -1,5 +1,5 @@
 // Hồ sơ brand trong brief (khối "brand"): mọi trường tùy chọn, thiếu / sai thì dùng mặc định trung tính.
-// Renderer KHÔNG viết cứng thương hiệu nào: màu, font, logo, linh vật, giọng đọc, tên miền CTA đều lấy từ đây.
+// Renderer KHÔNG viết cứng thương hiệu nào: màu, font, logo, giọng đọc, tên miền CTA đều lấy từ đây.
 // Laravel (VideoBriefBuilder) điền khối này từ hồ sơ brand; xem docs/video-renderer.md.
 import { existsSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -22,7 +22,6 @@ export const DEFAULT_FONT = 'Be Vietnam Pro';
 /** Giọng edge-tts mặc định: người dẫn (host) giọng nữ, khách giọng nam. */
 export const DEFAULT_VOICES = Object.freeze({ host: 'vi-VN-HoaiMyNeural', khach: 'vi-VN-NamMinhNeural' });
 
-export const MASCOTS = ['none', 'tia'];
 
 /** Kịch bản cũ dùng speaker "tia": coi là alias của "host" (người dẫn đại diện brand). */
 export const speakerOf = (speaker) => (speaker === 'tia' ? 'host' : speaker);
@@ -109,7 +108,7 @@ const str = (v, max = 120) => (typeof v === 'string' && v.trim() ? v.trim().slic
 /**
  * Chuẩn hóa khối brand của brief. Không bao giờ ném lỗi: dữ liệu sai bị thay bằng mặc định.
  * @returns {{name: string, host: string|null, ctaLabel: string|null, colors: object, font: object, logoUrl: string|null,
- *            mascot: 'none'|'tia', voices: {host: string, khach: string}, narrator: string|null, hashtags: string[]}}
+ *            voices: {host: string, khach: string}, narrator: string|null, hashtags: string[]}}
  */
 export function resolveBrand(brief) {
     const b = brief?.brand && typeof brief.brand === 'object' ? brief.brand : {};
@@ -125,7 +124,6 @@ export function resolveBrand(brief) {
         colors,
         font: resolveFont(str(b.font, 60)),
         logoUrl: str(b.logo_url, 2000),
-        mascot: MASCOTS.includes(b.mascot) ? b.mascot : 'none',
         voices: { host: voice('host'), khach: voice('khach') },
         // Giọng người dẫn brand chọn rõ ràng: đọc mọi cảnh (thay script.voice); null = dùng script.voice
         narrator: VOICE.test(String(v.host ?? '')) ? v.host : null,
@@ -133,7 +131,7 @@ export function resolveBrand(brief) {
     };
 }
 
-/** Chữ cái đầu của tên (avatar chữ khi không có linh vật). */
+/** Chữ cái đầu của tên (avatar chữ của người dẫn). */
 export function initial(name, fallback = '•') {
     const ch = [...String(name ?? '').trim()].find((x) => /[\p{L}\p{N}]/u.test(x));
     return ch ? ch.toLocaleUpperCase('vi') : fallback;

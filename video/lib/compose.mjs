@@ -4,7 +4,6 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { initial, speakerOf, theme as makeTheme } from './brand.mjs';
 import { captions, chrome, documentHtml, transitions } from '../templates/base.mjs';
-import { MASCOT_CSS, mascot } from '../templates/mascot.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -34,10 +33,9 @@ export function sceneVoices(script, brand) {
  * @param {Map} [p.images] src → { file, width, height }
  * @param {object|null} [p.tour] mẫu site-tour: { file, height, points }
  * @param {string|null} [p.logoFile] logo đã tải vào work (null = hiện tên brand dạng chữ)
- * @param {boolean} [p.withMascot] vẽ linh vật (brand.mascot = "tia")
  * @returns {Promise<{html: string, sfx: Array<{name: string, at: number, volume: number}>, duration: number}>}
  */
-export async function compose({ script, brief, brand, timings, voiceFiles, images = new Map(), tour = null, logoFile = null, withMascot = brand.mascot === 'tia' }) {
+export async function compose({ script, brief, brand, timings, voiceFiles, images = new Map(), tour = null, logoFile = null }) {
     const template = await loadTemplate(script.template);
     const theme = makeTheme(brand);
     const last = timings.at(-1);
@@ -66,18 +64,13 @@ export async function compose({ script, brief, brand, timings, voiceFiles, image
         parts.push(part);
         sfx.push(...(part.sfx ?? [])); // hiệu ứng riêng của mẫu (vd con dấu "HIỂU LẦM")
     });
-    if (withMascot) {
-        const m = mascot(timings, script.scenes, { hasImage: (s) => (Boolean(s.image) && !['hook', 'quote', 'myth', 'fact'].includes(s.type)) || ['build', 'choice', 'answer', 'tour'].includes(s.type) });
-        parts.push(m);
-        sfx.push(...m.sfx);
-    }
     parts.push(trans, captions(timings, theme));
 
     let body = parts.map((p) => p.html).join('');
     body += timings
         .map((t) => `\n  <audio id="voice${t.index}" src="${voiceFiles[t.index].file}" data-start="${(t.start + t.voiceAt).toFixed(2)}" data-duration="${(t.voice + 0.05).toFixed(2)}" data-volume="1"></audio>`)
         .join('');
-    // Hiệu ứng âm thanh (whoosh chuyển cảnh, zap / pop / ding của linh vật…)
+    // Hiệu ứng âm thanh (whoosh chuyển cảnh, ting / ding của từng mẫu…)
     const used = sfx.filter((x) => x.at >= 0 && x.at < duration - 0.1);
     body += used
         .map((x, i) => `\n  <audio id="sfx${i}" src="sfx/${x.name}.mp3" data-start="${x.at.toFixed(2)}" data-duration="${Math.min(1.2, duration - x.at).toFixed(2)}" data-volume="${x.volume}"></audio>`)
@@ -85,7 +78,7 @@ export async function compose({ script, brief, brand, timings, voiceFiles, image
 
     const html = documentHtml({
         duration,
-        css: (template.css ?? '') + (withMascot ? MASCOT_CSS : ''),
+        css: template.css ?? '',
         rootClass: script.template,
         body,
         tweens: parts.flatMap((p) => p.tweens),

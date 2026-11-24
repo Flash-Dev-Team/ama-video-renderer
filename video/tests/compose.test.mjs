@@ -1,5 +1,5 @@
 // Dựng composition HTML cho từng mẫu với mốc giọng đọc giả (không cần edge-tts / ffmpeg / Chrome):
-// kiểm tra màu, logo, linh vật, avatar lấy theo brand và không còn màu thương hiệu cũ viết cứng.
+// kiểm tra màu, logo, avatar lấy theo brand và không còn màu thương hiệu cũ viết cứng.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -75,22 +75,19 @@ test('nút CTA: thiếu brief.cta.label thì lấy brand.cta_label, rồi brand.
     assert.match(b.html, /<div class="pill">tiemhoa\.vn<\/div>/);
 });
 
-test('linh vật: "none" không vẽ, "tia" vẽ và tô theo màu brand', async () => {
-    const none = await build('project-showcase');
-    assert.doesNotMatch(none.html, /id="tia"/);
-    const tia = await build('project-showcase', { brand: { mascot: 'tia', colors: { accent: '#14B8A6' } } });
-    assert.match(tia.html, /id="tia"/);
-    assert.match(tia.html, /stop-color: var\(--accent\)/);
-    assert.ok(tia.sfx.some((x) => x.name === 'zap'));
+test('không còn linh vật: brand cũ có mascot "tia" cũng không vẽ', async () => {
+    const old = await build('project-showcase', { brand: { mascot: 'tia', colors: { accent: '#14B8A6' } } });
+    assert.doesNotMatch(old.html, /id="tia"/);
+    assert.ok(!old.sfx.some((x) => x.name === 'zap'));
 });
 
-test('chat-skit: avatar người dẫn là chữ cái đầu tên brand khi không có linh vật', async () => {
+test('chat-skit: avatar người dẫn là chữ cái đầu tên brand', async () => {
     const { html } = await build('chat-skit', { brand: { name: 'Tiệm Hoa' } });
     assert.match(html, /from-host/);
     assert.match(html, />T<\/text>/);
-    const tia = await build('chat-skit', { brand: { name: 'Tiệm Hoa', mascot: 'tia' } });
-    assert.doesNotMatch(tia.html, />T<\/text>/);
-    assert.match(tia.html, /M36 10 L20 36/);
+    const old = await build('chat-skit', { brand: { name: 'Tiệm Hoa', mascot: 'tia' } });
+    assert.match(old.html, />T<\/text>/);
+    assert.doesNotMatch(old.html, /M36 10 L20 36/);
 });
 
 test('before-after: nhãn trung tính, đổi được qua brief.labels', async () => {

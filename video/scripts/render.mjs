@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 // Dựng video 9:16 từ script.json.
 // node scripts/render.mjs --script script.json --brief brief.json --out out/video.mp4 --thumb out/thumb.jpg
-//   [--work work/] [--quality draft|standard|high] [--music auto|none|path.mp3] [--rate +12%] [--mascot auto|tia|none]
+//   [--work work/] [--quality draft|standard|high] [--music auto|none|path.mp3] [--rate +12%]
 //   [--workers auto|1-8] [--fps 24|30|60]
-// Màu, font, logo, linh vật, giọng đọc lấy từ khối "brand" của brief (lib/brand.mjs, docs/video-renderer.md).
-// --mascot auto (mặc định) theo brief.brand.mascot; "tia" / "none" ép bật / tắt khi thử trên máy.
+// Màu, font, logo, giọng đọc lấy từ khối "brand" của brief (lib/brand.mjs, docs/video-renderer.md).
 // GitHub Actions dùng --workers 2: HyperFrames tự chọn max(1, số CPU − 2) nên runner 2 vCPU chỉ chạy 1 worker.
 // Ảnh trong kịch bản là URL (tải về) hoặc đường dẫn tương đối so với file brief (dùng cho samples/).
 import { execFile } from 'node:child_process';
@@ -32,7 +31,6 @@ const { values: args } = parseArgs({
         quality: { type: 'string', default: 'standard' },
         music: { type: 'string', default: 'auto' },
         rate: { type: 'string', default: '+12%' },
-        mascot: { type: 'string', default: 'auto' },
         // Số trình duyệt dựng khung hình song song (auto = HyperFrames tự chọn)
         workers: { type: 'string', default: 'auto' },
         fps: { type: 'string', default: '30' },
@@ -116,8 +114,7 @@ async function main() {
     const errors = validateScript(script, brief);
     if (errors.length) throw new Error(`Kịch bản không hợp lệ:\n- ${errors.join('\n- ')}`);
     const brand = resolveBrand(brief);
-    const withMascot = args.mascot === 'auto' ? brand.mascot === 'tia' : ['tia', 'on'].includes(args.mascot);
-    log(`brand: ${brand.name || '(chưa đặt tên)'}, font ${brand.font.family}, linh vật ${withMascot ? 'tia' : 'không'}`);
+    log(`brand: ${brand.name || '(chưa đặt tên)'}, font ${brand.font.family}`);
 
     const work = resolve(args.work);
     rmSync(work, { recursive: true, force: true });
@@ -172,8 +169,8 @@ async function main() {
     const duration = Math.round(cursor * 100) / 100;
     log(`thời lượng ${duration}s, ${timings.length} cảnh`);
 
-    // 4. Dựng composition (màu, font, logo, linh vật theo brand)
-    const { html, sfx } = await compose({ script, brief, brand, timings, voiceFiles: tts.scenes, images, tour, logoFile, withMascot });
+    // 4. Dựng composition (màu, font, logo theo brand)
+    const { html, sfx } = await compose({ script, brief, brand, timings, voiceFiles: tts.scenes, images, tour, logoFile });
     mkdirSync(join(work, 'sfx'), { recursive: true });
     for (const name of new Set(sfx.map((x) => x.name))) copyFileSync(join(ROOT, 'assets', 'sfx', `${name}.mp3`), join(work, 'sfx', `${name}.mp3`));
     writeFileSync(join(work, 'index.html'), html);
@@ -214,7 +211,7 @@ async function main() {
     ffArgs.push('-filter_complex', filter, '-map', '0:v', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', '-movflags', '+faststart', '-t', String(duration), resolve(args.out));
     await run('ffmpeg', ffArgs);
 
-    // 7. Ảnh bìa: khung hình lúc tiêu đề hook (và linh vật nếu có) đã hiện
+    // 7. Ảnh bìa: khung hình lúc tiêu đề hook đã hiện
     mkdirSync(dirname(resolve(args.thumb)), { recursive: true });
     const thumbAt = Math.min(0.9, timings[0].dur - 0.1).toFixed(2);
     await run('ffmpeg', ['-v', 'error', '-y', '-ss', thumbAt, '-i', resolve(args.out), '-frames:v', '1', '-q:v', '3', resolve(args.thumb)]);

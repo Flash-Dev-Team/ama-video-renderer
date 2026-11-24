@@ -14,7 +14,6 @@
     },
     "font": "Be Vietnam Pro",
     "logo_url": "img/logo-mau.svg",
-    "mascot": "tia",
     "voices": {
       "host": "vi-VN-HoaiMyNeural",
       "khach": "vi-VN-NamMinhNeural"

@@ -1,7 +1,7 @@
 // Tiểu phẩm khung chat: khách nhắn hỏi trang của brand, người dẫn (host, đại diện brand) trả lời. Khung kiểu Messenger,
 // mỗi cảnh "msg" là một tin nhắn (hiện "đang gõ…" rồi bong bóng bật ra kèm tiếng "ting"), tin cũ đẩy lên trên.
 // Giọng đọc theo speaker (render.mjs: brand.voices.host / brand.voices.khach). Luôn có nhãn "Tình huống minh họa":
-// khách không phải người thật. Avatar host: linh vật tia chớp (brand.mascot = "tia") hoặc chữ cái đầu tên brand.
+// khách không phải người thật. Avatar host: chữ cái đầu tên brand trên nền màu nhấn.
 // Speaker "tia" của kịch bản cũ là alias của "host".
 import { speakerOf } from '../lib/brand.mjs';
 import { ctaScene, esc, hookScene, words } from './base.mjs';
@@ -10,12 +10,9 @@ const r = (n) => Math.round(n * 1000) / 1000;
 
 const KHACH_AVATAR = `<svg viewBox="0 0 64 64" width="64" height="64"><circle cx="32" cy="32" r="32" fill="#3B82F6"/><circle cx="32" cy="25" r="11" fill="#DBEAFE"/><path d="M12 54 Q14 38 32 38 Q50 38 52 54 Z" fill="#DBEAFE"/></svg>`;
 
-/** Avatar người dẫn: tia chớp tô màu brand (mascot "tia") hoặc chữ cái đầu tên brand trên nền màu nhấn. */
+/** Avatar người dẫn: chữ cái đầu tên brand trên nền màu nhấn. */
 export function hostAvatar(ctx) {
     const t = ctx.theme;
-    if (ctx.brand?.mascot === 'tia') {
-        return `<svg viewBox="0 0 64 64" width="64" height="64"><circle cx="32" cy="32" r="32" fill="${t.accent}"/><path d="M36 10 L20 36 H31 L27 54 L45 26 H34 Z" fill="${t.accentSoft}" stroke="${t.accentDark}" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
-    }
     return `<svg viewBox="0 0 64 64" width="64" height="64"><circle cx="32" cy="32" r="32" fill="${t.accent}"/><text x="32" y="33" text-anchor="middle" dominant-baseline="central" font-family="${esc(t.font)}, 'Be Vietnam Pro', sans-serif" font-size="30" font-weight="700" fill="${t.onAccent}">${esc(ctx.initial)}</text></svg>`;
 }
 
